@@ -105,13 +105,13 @@ const Translate = ({navigation}) => {
               color="blue"
               onPress={swap}
             />
-            <Text style={{marginLeft: 30, fontSize: 20}} on>
+            <Text style={{marginLeft: 30, fontSize: 20, color:"#000"}} on>
               {text1}
             </Text>
           </View>
           <ScrollView style={{width: '90%'}}>
             <View>
-              <Text style={[{marginTop: 20}, styles.font]}>From :</Text>
+              <Text style={[{marginTop: 20, }, styles.font]}>From :</Text>
               <TextInput
                 style={styles.area}
                 multiline={true}
@@ -121,10 +121,10 @@ const Translate = ({navigation}) => {
               <View style={styles.icon}>
                 <Icon
                   name="volume-high"
-                  style={{marginRight: 10, color: '#9CCECA'}}
+                  style={{marginRight: 10, color: '#22a5f1'}}
                   onPress={speak}
                 />
-                <Icon name="copy" style={{color: '#9CCECA'}} />
+                <Icon name="copy" style={{color: '#22a5f1'}} />
               </View>
               <Text style={[{marginTop: 10}, styles.font]}>To:</Text>
               <TextInput style={styles.area} multiline={true}>
@@ -133,10 +133,10 @@ const Translate = ({navigation}) => {
               <View style={styles.icon}>
                 <Icon
                   name="volume-high"
-                  style={{marginRight: 10, color: '#9CCECA'}}
+                  style={{marginRight: 10, color: '#22a5f1'}}
                   onPress={speak1}
                 />
-                <Icon name="copy" style={{color: '#9CCECA'}} />
+                <Icon name="copy" style={{color: '#22a5f1'}} />
               </View>
               <View style={{alignItems: 'center'}}>
                 <TouchableOpacity
@@ -190,9 +190,11 @@ const styles = StyleSheet.create({
     fontSize: 20,
     marginTop: 10,
     color: '#000',
+    borderRadius:10
   },
   font: {
     fontSize: 20,
+    color:"#000"
   },
   icon: {
     flexDirection: 'row',

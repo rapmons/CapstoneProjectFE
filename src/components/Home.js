@@ -70,38 +70,15 @@ const Home = ({navigation}) => {
     ImageCropPicker.openCamera({
       width: 0,
       height: 0,
-      cropping: true,
+      cropping: false,
       mediaType: 'photo',
     }).then(image => {
-      console.log(image.path);
-      upLoad(image.path)
+      
+      navigation.navigate('Translate')
+    
     });
   };
-  const upLoad = (imgPath) => {
-    try {
-      const options = {
-        method: 'POST',
-        url: URL_api,
-        headers: {
-          'content-type': 'multipart/form-data',
-        },
-        data: {
-          imgPath
-        },
-      };
-      axios
-        .request(options)
-        .then(function (response) {
-          console.log(response.data);
-          navigation.navigate('Translate');
-        })
-        .catch(function (error) {
-          console.error(error);
-        });
-    } catch (error) {
-      console.error(error);
-    }
-  };
+
   const handleOpenImg = () => {
     ImageCropPicker.openPicker({
       width: 300,
@@ -109,7 +86,7 @@ const Home = ({navigation}) => {
       cropping: true,
     }).then(image => {
       console.log(image.path);
-      navigation.navigate('Translate');
+      
     });
   };
 
@@ -147,7 +124,7 @@ const Home = ({navigation}) => {
           }}>
           <TouchableOpacity
             style={{alignItems: 'center', marginRight: 10}}
-            onPress={requestCameraPermission}>
+            onPress={() => navigation.navigate('Photo')}>
             <View
               style={{
                 backgroundColor: '#1E55BE',
@@ -217,13 +194,13 @@ const Home = ({navigation}) => {
           </View>
           <Text style={styles.text1}>Từ vựng Toiec theo chủ đề</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.template}>
+        <TouchableOpacity style={styles.template} onPress={()=> navigation.navigate('FlashCard')}>
           <View style={{width: 55}}>
             <Icon name="paw" size={50} color="#daa326" style={styles.marg} />
           </View>
           <Text style={styles.text1}>Từ của bạn</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.template}>
+        <TouchableOpacity style={styles.template} onPress={()=> navigation.navigate('Game')}>
           <View style={{width: 55}}>
             <Icon
               name="logo-game-controller-b"
@@ -236,7 +213,7 @@ const Home = ({navigation}) => {
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.template}
-          onPress={() => navigation.navigate('SignUp')}>
+          onPress={() => navigation.navigate('Login')}>
           <View style={{width: 55}}>
             <Icon name="happy" size={50} color="#f7f400" style={styles.marg} />
           </View>
@@ -291,7 +268,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.58,
     shadowRadius: 16.0,
 
-    elevation: 24,
+    elevation: 7,
   },
   marg: {
     marginLeft: 10,
