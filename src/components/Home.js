@@ -1,10 +1,11 @@
 import React from 'react';
 import Icon from 'react-native-ionicons';
 import {TextInput} from 'react-native-paper';
-import {useState} from 'react';
+import {useState,useEffect} from 'react';
 import ImageCropPicker from 'react-native-image-crop-picker';
 import {PermissionsAndroid} from 'react-native';
-
+import { useSelector ,useDispatch} from 'react-redux';
+import data from '../data/translation.json'
 import {
   Button,
   SafeAreaView,
@@ -17,7 +18,46 @@ import {
   Keyboard,
   View,
 } from 'react-native';
+import axios from 'axios';
+import { useRoute } from '@react-navigation/native';
+
+import { baseUrl,CLOUDINARY_URL,CLOUDINARY_UPLOAD_PRESET } from '../API/Url';
+import { setText } from '../redux/actions/action';
 const Home = ({navigation}) => {
+  
+
+
+  const route = useRoute();
+
+  useEffect(() => {
+    // Thực hiện các hành động cần thiết khi `key` thay đổi và màn hình cần render lại
+    setSearchTerm('')
+  }, [route.params?.key]);
+
+ 
+
+  const loadData=  async()=>
+  {
+    try {
+      const response = await axios.get(
+        `${baseUrl}get-list-history-search`,
+        
+        
+        {
+          headers: {
+            'Content-Type': ' application/json',
+          },
+        },
+      );
+      
+     return response.data
+    } catch (error) {
+      console.log(error);
+    }
+  }
+  
+ 
+  const [searchTerm, setSearchTerm] = useState('');
   const [img, setImg] = useState('');
   const requestCameraPermission = async () => {
     try {
@@ -89,7 +129,33 @@ const Home = ({navigation}) => {
       
     });
   };
-
+  const searchItem = async (searchTerm) => {
+    let saved = true; // Biến cục bộ để lưu trạng thái saved
+    const datasaved = await loadData();
+    console.log(datasaved)
+    for (let i = 0; i < data.length; i++) {
+      if (data[i].word === searchTerm.toLowerCase()) {
+        for (let j = 0; j < datasaved.length; j++) {
+          if (data[i].id === datasaved[j]) { // Sửa: so sánh với datasaved[j].id
+            saved = false;
+            return { data: data[i], saved }; // Sửa: Trả về saved như một thuộc tính của object
+          }
+        }
+        saved = true;
+        return { data: data[i], saved }; // Sửa: Trả về saved như một thuộc tính của object
+      }
+    }
+  
+    return null; // Trả về null nếu không tìm thấy phần tử
+  };
+  
+  const dispatchRedux = useDispatch();
+  const handleSearch = async () => {
+    const { data, saved } = await searchItem(searchTerm); // Sửa: Destructure giá trị trả về
+    dispatchRedux(setText(searchTerm, data, saved)); // Truyền giá trị saved vào action dispatch
+    navigation.navigate("Test");
+  };
+  
   return (
     <View style={styles.body}>
       <View style={styles.head}>
@@ -104,6 +170,8 @@ const Home = ({navigation}) => {
             style={styles.input}
             placeholder="Tra từ điển Anh-Việt"
             underlineColor={'rgba(0,0,0,0)'}
+            value={searchTerm}
+            onChangeText={setSearchTerm}
           />
           <Icon
             name="search"
@@ -114,6 +182,7 @@ const Home = ({navigation}) => {
               marginLeft: 40,
               marginTop: 12,
             }}
+            onPress={() => handleSearch()}
           />
         </View>
         <View
@@ -188,13 +257,13 @@ const Home = ({navigation}) => {
 
           <Text style={styles.text1}>Dịch văn bản</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.template}>
+        <TouchableOpacity style={styles.template} onPress={()=> navigation.navigate("Topic")}>
           <View style={{width: 55}}>
             <Icon name="paper" size={50} color="#cf579f" style={styles.marg} />
           </View>
-          <Text style={styles.text1}>Từ vựng Toiec theo chủ đề</Text>
+          <Text style={styles.text1}>Từ vựng Toeic theo chủ đề</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.template} onPress={()=> navigation.navigate('FlashCard')}>
+        <TouchableOpacity style={styles.template} onPress={()=> navigation.navigate('ListWord')}>
           <View style={{width: 55}}>
             <Icon name="paw" size={50} color="#daa326" style={styles.marg} />
           </View>

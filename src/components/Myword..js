@@ -99,10 +99,7 @@ const FlashCard = ({navigation}) => {
             <Text style={{color: '#22a5f1', fontSize: 17, fontWeight: 600}}>
               /Hgđgdg/
             </Text>
-            <Icon
-              name="volume-high"
-              style={{marginLeft: 20, color: '#22a5f1'}}
-            />
+            
           </View>
         </Animated.View>
         <Animated.View
@@ -140,7 +137,7 @@ const styles = StyleSheet.create({
   },
   card: {
     backgroundColor: '#fff',
-    width: '90%',
+    width: '85%',
     height: 550,
     borderRadius: 20,
     justifyContent: 'center',

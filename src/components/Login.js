@@ -19,7 +19,7 @@ ImageBackground,
 KeyboardAvoidingView,
 TouchableWithoutFeedback,
 } from 'react-native';
-
+import { baseUrl,CLOUDINARY_URL,CLOUDINARY_UPLOAD_PRESET } from '../API/Url';
 const Login = ({navigation}) => {
   
 const [username, setUsername] = useState('');
@@ -28,7 +28,7 @@ const [error, setError] = useState('');
 
 const handleSubmit = async () => {
 try {
-const response = await axios.post('http://192.168.1.12:8000/api/login', {
+const response = await axios.post( `${baseUrl}login`, {
 username,
 password,
 });

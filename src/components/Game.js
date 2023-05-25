@@ -1,37 +1,41 @@
-import React, {useState} from 'react';
+import React, {useState,useEffect} from 'react';
 import {View, Text, TouchableOpacity, Image, StyleSheet} from 'react-native';
 import Icon from 'react-native-ionicons';
-const questions = [
-  {
-    question: 'What is the capital of France?',
-    answers: ['New York', 'Paris', 'London', 'Berlin'],
-    correctAnswerIndex: 1,
-  },
-  {
-    question: 'What is the capital of France?',
-    answers: ['New York', 'Paris', 'London', 'Berlin'],
-    correctAnswerIndex: 1,
-  },
-  {
-    question: 'What is the capital of France?',
-    answers: ['New York', 'Paris', 'London', 'Berlin'],
-    correctAnswerIndex: 1,
-  },
-  {
-    question: 'What is the capital of France?',
-    answers: ['New York', 'Paris', 'London', 'Berlin'],
-    correctAnswerIndex: 1,
-  },
-  {
-    question: 'What is the capital of France?',
-    answers: ['New York', 'Paris', 'London', 'Berlin'],
-    correctAnswerIndex: 1,
-  },
-  // Add more questions here
-];
+import axios from 'axios';
+import { baseUrl,CLOUDINARY_URL,CLOUDINARY_UPLOAD_PRESET } from '../API/Url';
+import { useSelector } from 'react-redux';
+
 
 const Quiz = ({navigation}) => {
-
+  const topicId = useSelector((state) => state.topic.topicId);
+  const [questions, setWords] = useState(
+    [
+      
+    ]
+  );
+  const loadData = async () => {
+   
+    try {
+      const response = await axios.post(
+        `${baseUrl}game-toeic`,
+        {
+     idTopic:topicId
+        },
+        
+        {
+          headers: {
+            'Content-Type': ' application/json',
+          },
+        },
+      );
+      setWords(response.data)
+    } catch (error) {
+      console.log(error);
+    }
+  };
+  useEffect(() => {
+    loadData()
+  }, []);
   const [image, setImage] = useState(null);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [selectedAnswerIndex, setSelectedAnswerIndex] = useState(null);
@@ -69,7 +73,14 @@ const Quiz = ({navigation}) => {
       setCurrentQuestionIndex(currentQuestionIndex + 1);
     }
   };
-
+  
+  if (questions.length==0) {
+    return (
+      <View>
+        <Text>Loading...</Text>
+      </View>
+    );
+  }
   return (
     <View style={styles.body}>
       <View
@@ -85,15 +96,17 @@ const Quiz = ({navigation}) => {
           onPress={() => navigation.goBack()}
         />
       </View>
-      <View style={{alignItems: 'center'}}>
-        {image == null ? (
+      <View style={{alignItems: 'center', marginBottom:10}}>
+        {currentQuestion.question == null ? (
           <Image
             source={require('../img/camera.png')}
             style={styles.image}></Image>
         ) : (
-          <Image source={{uri: image}} style={styles.image}></Image>
+          <Image source={{uri:`https://res.cloudinary.com/dpnhk5kup/image/upload/${currentQuestion.question }`}} style={styles.image}></Image>
         )}
+        <Text style={{color: '#22a5f1', fontSize: 20, fontWeight: 600}}>{currentQuestion.text}</Text>
       </View>
+      
       {currentQuestion.answers.map((answer, index) => (
         <TouchableOpacity
           key={index}

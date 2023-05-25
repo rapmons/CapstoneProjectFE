@@ -16,7 +16,7 @@ import {
   View,
   ImageBackground,
 } from 'react-native';
-
+import { baseUrl,CLOUDINARY_URL,CLOUDINARY_UPLOAD_PRESET } from '../API/Url';
 const SignUp = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -29,7 +29,7 @@ const SignUp = () => {
     }
 
     axios
-      .post('http://192.168.1.12:8000/api/register', {
+      .post( `${baseUrl}register`, {
         username: username,
         password: password,
       })
