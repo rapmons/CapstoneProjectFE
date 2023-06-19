@@ -18,13 +18,24 @@ import { Provider, useDispatch, useSelector } from "react-redux";
 import store from './src/redux/store/store';
 import Test from './src/components/Test';
 import { FlashMessageProvider } from 'react-native-flash-message';
+import MyWordTopic from './src/components/MyWordTopic';
+import Area from './src/components/TK1';
+import Quiz from './src/components/MyGame';
+import VocabularyReminder from './src/components/Reminder';
+import Account from './src/components/Account';
 const Stack = createStackNavigator();
 const App = () => {
+
   return (
     <Provider store={store}> 
+    
     <NavigationContainer>
       <Stack.Navigator screenOptions={{header: () => null}}>
       <Stack.Screen name="Home" component={Home} />
+      <Stack.Screen name="MyWord" component={MyWordTopic} />
+      <Stack.Screen name="Profile" component={Account} />
+      <Stack.Screen name="Statis" component={Area} />
+     
       <Stack.Screen name="Topic" component={Topic} />
      
       <Stack.Screen name="Test" component={Test} />
@@ -39,14 +50,14 @@ const App = () => {
        
         <Stack.Screen name="FlashCard" component={FlashCard} />
         <Stack.Screen name="Game" component={Game} />
-    
+        <Stack.Screen name="MyGame" component={Quiz} />
         <Stack.Screen name="Welcome" component={Welcome} />
         <Stack.Screen name="Login" component={Login} />
         <Stack.Screen name="SignUp" component={SignUp} />
         <Stack.Screen name="Translate" component={Translate} />
       </Stack.Navigator>
     </NavigationContainer>
-    
+    <VocabularyReminder/>
     </Provider>
   );
 };

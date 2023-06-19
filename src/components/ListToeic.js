@@ -38,9 +38,13 @@ const VocabularyList = ({navigation,ids}) => {
           },
         },
       );
+      
       setWords(response.data)
     } catch (error) {
-      console.log(error);
+      if (error.response.status === 403)
+    {
+      navigation.navigate("Login")
+    }
     }
   };
   useEffect(() => {

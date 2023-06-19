@@ -1,4 +1,4 @@
-import React, {useState,useEffect} from 'react';
+import React, {useState, useEffect} from 'react';
 import {
   ScrollView,
   StyleSheet,
@@ -10,76 +10,65 @@ import {
 import axios from 'axios';
 import Icon from 'react-native-ionicons';
 import data from '../data/translation.json';
-import { useSelector } from 'react-redux';
+import {useSelector} from 'react-redux';
 import Snackbar from 'react-native-snackbar';
-import { baseUrl,CLOUDINARY_URL,CLOUDINARY_UPLOAD_PRESET } from '../API/Url';
+import {baseUrl, CLOUDINARY_URL, CLOUDINARY_UPLOAD_PRESET} from '../API/Url';
 const Test = ({navigation}) => {
-  const handleShowSnackbar = (data) => {
+  const handleShowSnackbar = data => {
     Snackbar.show({
       text: data,
       duration: 3000,
-     
     });
   };
-  
- 
-  
- 
-  const data123 = useSelector((state) => state.data);
+
+  const data123 = useSelector(state => state.data);
   const [searchTerm, setSearchTerm] = useState(data123.text);
   const [searchResult, setSearchResult] = useState(data123.data);
-  const[saved, setSaved]=useState(data123.saved)
-  const loadData=  async()=>
-  {
+  const [saved, setSaved] = useState(data123.saved);
+  const loadData = async () => {
     try {
       const response = await axios.get(
         `${baseUrl}get-list-history-search`,
-        
-        
+
         {
           headers: {
             'Content-Type': ' application/json',
           },
         },
       );
-     
-      return response.data
+
+      return response.data;
     } catch (error) {
-      console.log(error);
+      if (error.response.status === 403) {
+        navigation.navigate('Login');
+      }
     }
-  }
- 
-  const searchItem = async(searchTerm) => {
-   
-    const datasaved= await loadData()
-     for (let i = 0; i < data.length; i++) {
-       if (data[i].word === searchTerm.toLowerCase()) {
-       
-         for (let j=0;j<datasaved.length;j++)
-         {
-           if(data[i].id==datasaved[j])
-           {
-             setSaved(false)
-             return data[i];
-           }
-          
-           
-         }
-         setSaved(true)
-         return data[i];
-       }
-     }
-     return null; // Trả về null nếu không tìm thấy phần tử
-   };
-  const saveWord = async (idWord,saved) => {
-    setSaved(saved)
+  };
+
+  const searchItem = async searchTerm => {
+    const datasaved = await loadData();
+    for (let i = 0; i < data.length; i++) {
+      if (data[i].word === searchTerm.toLowerCase()) {
+        for (let j = 0; j < datasaved.length; j++) {
+          if (data[i].id == datasaved[j]) {
+            setSaved(false);
+            return data[i];
+          }
+        }
+        setSaved(true);
+        return data[i];
+      }
+    }
+    return null; // Trả về null nếu không tìm thấy phần tử
+  };
+  const saveWord = async (idWord, saved) => {
+    setSaved(saved);
     try {
       const response = await axios.post(
         `${baseUrl}create-search`,
         {
           idWord,
           saved,
-          
         },
         {
           headers: {
@@ -87,14 +76,16 @@ const Test = ({navigation}) => {
           },
         },
       );
-      handleShowSnackbar(response.data)
-      loadData()
+
+      handleShowSnackbar(response.data);
+      loadData();
     } catch (error) {
-      console.log(error);
+      if (error.response.status === 403) {
+        navigation.navigate('Login');
+      }
     }
   };
   const handleSearch = async () => {
-    
     setSearchResult(await searchItem(searchTerm));
   };
 
@@ -113,34 +104,33 @@ const Test = ({navigation}) => {
           name="arrow-back"
           size={30}
           style={{color: '#fff'}}
-          onPress={() => navigation.navigate("Home",{ key: new Date().getTime() })}
+          onPress={() => navigation.goBack()}
         />
         <TextInput
           style={styles.input}
           value={searchTerm}
           onChangeText={setSearchTerm}
         />
-        
+
         {saved ? (
-        <Icon
-        name="star"
-        size={30}
-        style={{
-          color: '#fff',
-        }}
-        onPress={() => 
-          saveWord(searchResult.id,!saved)}
-      />
-      ) : (
-        <Icon
-        name="star"
-        size={30}
-        style={{
-          color: 'yellow',
-        }}
-        onPress={() => saveWord(searchResult.id,!saved)}
-      />
-      )}
+          <Icon
+            name="star"
+            size={30}
+            style={{
+              color: '#fff',
+            }}
+            onPress={() => saveWord(searchResult.id, !saved)}
+          />
+        ) : (
+          <Icon
+            name="star"
+            size={30}
+            style={{
+              color: 'yellow',
+            }}
+            onPress={() => saveWord(searchResult.id, !saved)}
+          />
+        )}
         <Icon
           name="search"
           size={30}
@@ -174,9 +164,7 @@ const Test = ({navigation}) => {
         ) : (
           <Text style={styles.noResult}>No result found.</Text>
         )}
-       
       </ScrollView>
-    
     </View>
   );
 };

@@ -1,11 +1,11 @@
 import React from 'react';
 import Icon from 'react-native-ionicons';
 import {TextInput} from 'react-native-paper';
-import {useState,useEffect} from 'react';
+import {useState, useEffect} from 'react';
 import ImageCropPicker from 'react-native-image-crop-picker';
 import {PermissionsAndroid} from 'react-native';
-import { useSelector ,useDispatch} from 'react-redux';
-import data from '../data/translation.json'
+import {useSelector, useDispatch} from 'react-redux';
+import data from '../data/translation.json';
 import {
   Button,
   SafeAreaView,
@@ -19,147 +19,141 @@ import {
   View,
 } from 'react-native';
 import axios from 'axios';
-import { useRoute } from '@react-navigation/native';
+import {useRoute} from '@react-navigation/native';
 
-import { baseUrl,CLOUDINARY_URL,CLOUDINARY_UPLOAD_PRESET } from '../API/Url';
-import { setText } from '../redux/actions/action';
+import {baseUrl, CLOUDINARY_URL, CLOUDINARY_UPLOAD_PRESET} from '../API/Url';
+import {setText,setUser,setListData} from '../redux/actions/action';
+import { useIsFocused } from '@react-navigation/native';
 const Home = ({navigation}) => {
-  
-
-
   const route = useRoute();
 
+  const isFocused = useIsFocused();
+  const [refreshFlag, setRefreshFlag] = useState(false);
+
   useEffect(() => {
-    // Thực hiện các hành động cần thiết khi `key` thay đổi và màn hình cần render lại
-    setSearchTerm('')
-  }, [route.params?.key]);
+    // Load data or perform any necessary tasks when component mounts or refreshFlag changes
+   
+    getListData();
+    setSearchTerm('');
+    // Reset refreshFlag after useEffect is executed
+    setRefreshFlag(false);
+  }, [refreshFlag]);
 
- 
+  useEffect(() => {
+    // Add navigation listener to listen for screen focus event
+    const unsubscribe = navigation.addListener('focus', () => {
+      // Set refreshFlag to true when the screen is focused
+      setRefreshFlag(true);
+    });
 
-  const loadData=  async()=>
-  {
+    // Clean up the listener when the component is unmounted
+    return unsubscribe;
+  }, []);
+  const loadData = async () => {
     try {
       const response = await axios.get(
         `${baseUrl}get-list-history-search`,
-        
-        
+
         {
           headers: {
             'Content-Type': ' application/json',
           },
         },
       );
-      
-     return response.data
+     
+      return response.data;
     } catch (error) {
-      console.log(error);
+      if (error.response.status === 403)
+    {
+      navigation.navigate("Login")
     }
-  }
-  
- 
+    }
+  };
+
   const [searchTerm, setSearchTerm] = useState('');
-  const [img, setImg] = useState('');
-  const requestCameraPermission = async () => {
-    try {
-      const granted = await PermissionsAndroid.request(
-        PermissionsAndroid.PERMISSIONS.CAMERA,
-        {
-          title: 'Cool Photo App Camera Permission',
-          message:
-            'Cool Photo App needs access to your camera ' +
-            'so you can take awesome pictures.',
-          buttonNeutral: 'Ask Me Later',
-          buttonNegative: 'Cancel',
-          buttonPositive: 'OK',
-        },
-      );
-      if (granted === PermissionsAndroid.RESULTS.GRANTED) {
-        handleOpenCamere();
-      } else {
-        console.log('Camera permission denied');
+  const[listData,setListDataa]= useState([])
+  const getListData = async () => {
+    const datasaved = await loadData();
+    console.log(datasaved);
+    const newListData = [];
+    for (let ii = 0; ii < datasaved.length; ii++) {
+      for (let jj = 0; jj < data.length; jj++) {
+        if (data[jj].id == datasaved[ii]) {
+          newListData.push({ dataset: data[jj], saved: false });
+        }
       }
-    } catch (err) {
-      console.warn(err);
     }
+    setListDataa(newListData);
   };
+  
 
-  const requestImgPermission = async () => {
-    try {
-      const granted = await PermissionsAndroid.request(
-        PermissionsAndroid.PERMISSIONS.READ_MEDIA_IMAGES,
-        {
-          title: 'Cool Photo App Camera Permission',
-          message:
-            'Cool Photo App needs access to your camera ' +
-            'so you can take awesome pictures.',
-          buttonNeutral: 'Ask Me Later',
-          buttonNegative: 'Cancel',
-          buttonPositive: 'OK',
-        },
-      );
-      if (granted === PermissionsAndroid.RESULTS.GRANTED) {
-        handleOpenImg();
-      } else {
-        console.log('Camera permission denied');
-      }
-    } catch (err) {
-      console.warn(err);
-    }
-  };
-  const handleOpenCamere = () => {
-    ImageCropPicker.openCamera({
-      width: 0,
-      height: 0,
-      cropping: false,
-      mediaType: 'photo',
-    }).then(image => {
-      
-      navigation.navigate('Translate')
-    
-    });
-  };
-
-  const handleOpenImg = () => {
-    ImageCropPicker.openPicker({
-      width: 300,
-      height: 400,
-      cropping: true,
-    }).then(image => {
-      console.log(image.path);
-      
-    });
-  };
-  const searchItem = async (searchTerm) => {
+  const searchItem = async searchTerm => {
     let saved = true; // Biến cục bộ để lưu trạng thái saved
     const datasaved = await loadData();
-    console.log(datasaved)
+   
     for (let i = 0; i < data.length; i++) {
       if (data[i].word === searchTerm.toLowerCase()) {
         for (let j = 0; j < datasaved.length; j++) {
-          if (data[i].id === datasaved[j]) { // Sửa: so sánh với datasaved[j].id
+          if (data[i].id === datasaved[j]) {
+            // Sửa: so sánh với datasaved[j].id
             saved = false;
-            return { data: data[i], saved }; // Sửa: Trả về saved như một thuộc tính của object
+            return {data: data[i], saved}; // Sửa: Trả về saved như một thuộc tính của object
           }
+         
         }
         saved = true;
-        return { data: data[i], saved }; // Sửa: Trả về saved như một thuộc tính của object
+        return {data: data[i], saved}; // Sửa: Trả về saved như một thuộc tính của object
       }
     }
-  
-    return null; // Trả về null nếu không tìm thấy phần tử
+
+    return {data: null, saved}; // Trả về null nếu không tìm thấy phần tử
   };
-  
+
   const dispatchRedux = useDispatch();
   const handleSearch = async () => {
-    const { data, saved } = await searchItem(searchTerm); // Sửa: Destructure giá trị trả về
+    const {data, saved} = await searchItem(searchTerm); // Sửa: Destructure giá trị trả về
     dispatchRedux(setText(searchTerm, data, saved)); // Truyền giá trị saved vào action dispatch
-    navigation.navigate("Test");
+    navigation.navigate('Test');
+  };
+  const handleMyWord =  async() => {
+
+    await getListData();
+    if(listData.length>0)
+    {
+      dispatchRedux(setListData(listData));
+      navigation.navigate('FlashCard');
+    }
+   
+  };
+  const handleProfile = async () => {
+    try {
+      const data = await userProfile();
+      dispatchRedux(setUser(data));
+      navigation.navigate('Profile');
+    } catch (error) {
+      if (error.response && error.response.status === 403) {
+        navigation.navigate('Login');
+      }
+    }
+  };
+  
+  const userProfile = async () => {
+    try {
+      const response = await axios.get(`${baseUrl}user`, {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      return response.data.username;
+    } catch (error) {
+      throw error; // Re-throw the error to be caught in handleProfile()
+    }
   };
   
   return (
     <View style={styles.body}>
       <View style={styles.head}>
-        <Text style={styles.text}>Image Dictionary</Text>
+        <Text style={styles.text}>Joy Dictionary</Text>
         <View
           style={{
             flexDirection: 'row',
@@ -210,11 +204,9 @@ const Home = ({navigation}) => {
                 style={{color: 'white', marginTop: 7}}
               />
             </View>
-            <Text style={{color: 'white'}}>Dịch máy ảnh</Text>
+            <Text style={{color: 'white'}}>Dịch ảnh</Text>
           </TouchableOpacity>
-          <TouchableOpacity
-            style={{alignItems: 'center'}}
-            onPress={requestImgPermission}>
+          {/* <TouchableOpacity style={{alignItems: 'center'}}>
             <View
               style={{
                 backgroundColor: '#1E55BE',
@@ -232,11 +224,11 @@ const Home = ({navigation}) => {
               />
             </View>
             <Text style={{color: 'white'}}>Dịch hình ảnh</Text>
-          </TouchableOpacity>
+          </TouchableOpacity> */}
         </View>
       </View>
 
-      <View
+      {/* <View
         style={{
           backgroundColor: '#FFF',
           height: '100%',
@@ -263,23 +255,13 @@ const Home = ({navigation}) => {
           </View>
           <Text style={styles.text1}>Từ vựng Toeic theo chủ đề</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.template} onPress={()=> navigation.navigate('ListWord')}>
+        <TouchableOpacity style={styles.template} onPress={()=> navigation.navigate('MyWord')}>
           <View style={{width: 55}}>
             <Icon name="paw" size={50} color="#daa326" style={styles.marg} />
           </View>
           <Text style={styles.text1}>Từ của bạn</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.template} onPress={()=> navigation.navigate('Game')}>
-          <View style={{width: 55}}>
-            <Icon
-              name="logo-game-controller-b"
-              size={50}
-              color="#0245f6"
-              style={styles.marg}
-            />
-          </View>
-          <Text style={styles.text1}>Game từ vựng</Text>
-        </TouchableOpacity>
+        
         <TouchableOpacity
           style={styles.template}
           onPress={() => navigation.navigate('Login')}>
@@ -288,6 +270,66 @@ const Home = ({navigation}) => {
           </View>
           <Text style={styles.text1}>Tài khoản của bạn</Text>
         </TouchableOpacity>
+      </View> */}
+      <View
+        style={{
+          backgroundColor: '#FFF',
+          height: '100%',
+          width: '100%',
+        }}>
+        <View style={{flexDirection: 'row', justifyContent: 'space-around'}}>
+          <TouchableOpacity
+            style={styles.word}
+            onPress={() => navigation.navigate('Translate')}>
+            <View style={{width: 55}}>
+              <Icon
+                name="clipboard"
+                size={50}
+                color="#F7D3BA"
+                style={styles.marg}
+              />
+            </View>
+
+            <Text style={styles.text1}>Dịch văn bản</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.word}
+            onPress={() => navigation.navigate('Topic')}>
+            <View style={{width: 55}}>
+              <Icon
+                name="paper"
+                size={50}
+                color="#cf579f"
+                style={styles.marg}
+              />
+            </View>
+            <Text style={styles.text1}>Từ vựng Toeic</Text>
+          </TouchableOpacity>
+        </View>
+        <View style={{flexDirection: 'row', justifyContent: 'space-around'}}>
+          <TouchableOpacity
+            style={styles.word}
+            onPress={() => handleMyWord() }>
+            <View style={{width: 55}}>
+              <Icon name="paw" size={50} color="#daa326" style={styles.marg} />
+            </View>
+            <Text style={styles.text1}>Từ của bạn</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.word}
+            onPress={() =>handleProfile()}>
+            <View style={{width: 55}}>
+              <Icon
+                name="happy"
+                size={50}
+                color="#f7f400"
+                style={styles.marg}
+              />
+            </View>
+            <Text style={styles.text1}>Tài khoản </Text>
+          </TouchableOpacity>
+        </View>
       </View>
     </View>
   );
@@ -339,16 +381,30 @@ const styles = StyleSheet.create({
 
     elevation: 7,
   },
-  marg: {
-    marginLeft: 10,
-    marginTop: 5,
-  },
+  marg: {},
   text1: {
     fontSize: 19,
     fontFamily: 'Times New Roman',
     color: '#000',
-    marginLeft: 20,
+  },
+  word: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 20,
     marginTop: 20,
+    width: '43%',
+    height: 170,
+    backgroundColor: '#fff',
+    borderRadius: 10,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 12,
+    },
+    shadowOpacity: 0.58,
+    shadowRadius: 16.0,
+
+    elevation: 10,
   },
 });
 export default Home;

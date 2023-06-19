@@ -4,7 +4,7 @@ import Icon from 'react-native-ionicons';
 import axios from 'axios';
 import { baseUrl,CLOUDINARY_URL,CLOUDINARY_UPLOAD_PRESET } from '../API/Url';
 import { useSelector } from 'react-redux';
-import { Alert } from 'react-native';
+
 
 const Quiz = ({navigation}) => {
   const topicId = useSelector((state) => state.topic.topicId);
@@ -16,25 +16,22 @@ const Quiz = ({navigation}) => {
   const loadData = async () => {
    
     try {
-      const response = await axios.post(
-        `${baseUrl}game-toeic`,
-        
-    {
-      idTopic:topicId
-    },
+      const response = await axios.get(
+        `${baseUrl}game`,
+       
         {
           headers: {
             'Content-Type': ' application/json',
           },
         },
       );
-      
+     
       setWords(response.data)
     } catch (error) {
       if (error.response.status === 403)
-      {
-        navigation.navigate("Login")
-      }
+    {
+      navigation.navigate("Login")
+    }
     }
   };
   useEffect(() => {
@@ -59,64 +56,24 @@ const Quiz = ({navigation}) => {
     setShow(null)
   };
 
-
-
-const handleNextQuestion = () => {
-  setShowAnswer(false);
-  setSelectedAnswerIndex(null);
-  if (selectedAnswerIndex === currentQuestion.correctAnswerIndex) {
-    setNumCorrectAnswers(numCorrectAnswers + 1);
-  } else {
-    setNumIncorrectAnswers(numIncorrectAnswers + 1);
-  }
-  if (currentQuestionIndex === questions.length - 1) {
-    showAd();
-  } else {
-    setCurrentQuestionIndex(currentQuestionIndex + 1);
-  }
-};
-
-const showAd = () => {
-  const totalQuestions = questions.length;
-  const numCorrect = numCorrectAnswers + (selectedAnswerIndex === currentQuestion.correctAnswerIndex ? 1 : 0);
-  const numIncorrect = numIncorrectAnswers + (selectedAnswerIndex !== currentQuestion.correctAnswerIndex ? 1 : 0);
-  Alert.alert(
-    'Quiz Result',
-    `You answered ${numCorrect} questions correctly and ${numIncorrect} questions incorrectly out of ${totalQuestions} total questions.`,
-    [
-      {
-        text: 'OK',
-        onPress: async() => {
-           try {
-              const response = await axios.post(
-                `${baseUrl}save-result`,
-                {
-                  idTopic: topicId,
-                  number: numCorrect
-                },
-                {
-                  headers: {
-                    'Content-Type': 'application/json',
-                  },
-                }
-              );
-              navigation.goBack();
-            } catch (error) {
-              if (error.response && error.response.status === 403) {
-                navigation.navigate("Login");
-              } else {
-                console.log("Lỗi khi gửi yêu cầu POST:", error);
-              }
-            }
-      }
-      },
-    ],
-  );
-};
-
-  
-  
-  
+  const handleNextQuestion = () => {
+    setShowAnswer(false);
+    setSelectedAnswerIndex(null);
+    if (selectedAnswerIndex === currentQuestion.correctAnswerIndex) {
+      setNumCorrectAnswers(numCorrectAnswers + 1);
+    } else {
+      setNumIncorrectAnswers(numIncorrectAnswers + 1);
+    }
+    if (currentQuestionIndex === questions.length - 1) {
+      // End of quiz
+      // Display summary
+      alert(
+        `You answered ${numCorrectAnswers} questions correctly and ${numIncorrectAnswers} questions incorrectly.`,
+      );
+    } else {
+      setCurrentQuestionIndex(currentQuestionIndex + 1);
+    }
+  };
   
   if (questions.length==0) {
     return (
@@ -146,8 +103,7 @@ const showAd = () => {
             source={require('../img/camera.png')}
             style={styles.image}></Image>
         ) : (
-           <Image source={{uri:`https://res.cloudinary.com/dpnhk5kup/image/upload/${currentQuestion.question }`}} style={styles.image}></Image>
-          
+          <Image source={{uri:`https://res.cloudinary.com/dpnhk5kup/image/upload/${currentQuestion.question }`}} style={styles.image}></Image>
         )}
         <Text style={{color: '#22a5f1', fontSize: 20, fontWeight: 600}}>{currentQuestion.text}</Text>
       </View>

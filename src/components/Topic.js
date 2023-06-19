@@ -20,6 +20,25 @@ import toeic from '../redux/reducers/toeic';
 import { setTopicId } from '../redux/actions/action';
 
 const Topic = ({navigation}) => {
+  const [refreshFlag, setRefreshFlag] = useState(false);
+  useEffect(() => {
+    // Load data or perform any necessary tasks when component mounts or refreshFlag changes
+   
+    loadData()
+    // Reset refreshFlag after useEffect is executed
+    setRefreshFlag(false);
+  }, [refreshFlag]);
+
+  useEffect(() => {
+    // Add navigation listener to listen for screen focus event
+    const unsubscribe = navigation.addListener('focus', () => {
+      // Set refreshFlag to true when the screen is focused
+      setRefreshFlag(true);
+    });
+
+    // Clean up the listener when the component is unmounted
+    return unsubscribe;
+  }, []);
   const [words, setWords] = useState(
     []
     
@@ -36,9 +55,13 @@ const Topic = ({navigation}) => {
           },
         },
       );
+      
       setWords(response.data)
     } catch (error) {
-      console.log(error);
+      if (error.response.status === 403)
+      {
+        navigation.navigate("Login")
+      }
     }
   };
   useEffect(() => {
@@ -115,7 +138,7 @@ const Word = ({id,name,number,pos, onPress}) => {
         progress={pos/number}
      
       />
-      <Text>{`${pos/number*100}%`}</Text>
+      <Text>{`${Math.round(pos/number*100)}%`}</Text>
       </View>
      
      

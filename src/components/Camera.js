@@ -6,7 +6,10 @@ import axios from 'axios';
 import ImageCropPicker from 'react-native-image-crop-picker';
 import {PermissionsAndroid} from 'react-native';
 import {Cloudinary} from 'cloudinary-react-native';
-import { baseUrl,CLOUDINARY_URL,CLOUDINARY_UPLOAD_PRESET } from '../API/Url';
+import { useSelector ,useDispatch} from 'react-redux';
+import data from '../data/translation.json'
+import { setText } from '../redux/actions/action';
+import {baseUrl, CLOUDINARY_URL, CLOUDINARY_UPLOAD_PRESET} from '../API/Url';
 import {
   Button,
   SafeAreaView,
@@ -22,65 +25,21 @@ import {
   Image,
   ActivityIndicator,
 } from 'react-native';
-const Word = ({text, mean, spell, post, saved, onPress}) => {
+import Snackbar from 'react-native-snackbar';
+const Word = ({mean, onPress}) => {
   return (
-    <View style={styles.tempalte}>
-      <View style={{marginLeft: 15}}>
-        <Text style={{color: '#000', fontWeight: 600, marginBottom: 5}}>
-          Độ chính xác : {post}%
-        </Text>
-        <View
-          style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            marginBottom: 10,
-          }}>
-          <Image style={styles.logo} source={require('../img/en.png')}></Image>
-          <Text style={{color: '#22a5f1', fontSize: 17, fontWeight: 600}}>
-            {text}
-          </Text>
-          <Text
-            style={{
-              color: '#22a5f1',
-              fontSize: 17,
-              fontWeight: 600,
-              marginLeft: 10,
-            }}>
-            {spell}
-          </Text>
-          <Icon
-            name="volume-high"
-            style={{
-              color: '#22a5f1',
-              marginLeft: 5,
-            }}
-          />
-        </View>
-        <View style={{flexDirection: 'row', alignItems: 'center'}}>
-          <Image style={styles.logo} source={require('../img/vn.png')}></Image>
-          <Text style={{color: '#000', fontSize: 17, fontWeight: 600}}>
-            {mean}
-          </Text>
-        </View>
-      </View>
-      {saved ? (
-        <Icon
-          name="checkmark"
-          size={40}
-          color="green"
-          onPress={onPress}
-          style={{marginRight: 5}}
-        />
-      ) : (
-        <Icon
-          name="save"
-          size={30}
-          color="#000"
-          onPress={onPress}
-          style={{marginRight: 5}}
-        />
-      )}
-    </View>
+    <TouchableOpacity style={{marginRight: 6}} onPress={onPress}>
+      <Text
+        style={{
+          color: '#22a5f1',
+          fontSize: 20,
+          fontWeight: '500',
+          textDecorationLine: 'underline',
+        }}
+        >
+        {mean}
+      </Text>
+    </TouchableOpacity>
   );
 };
 
@@ -94,62 +53,112 @@ const LoadingScreen = () => {
 };
 const Camera = ({navigation}) => {
   const [words, setWords] = useState([]);
+  const [hasRenderedWords, setHasRenderedWords] = useState(false);
+  // const upload = async imageUri => {
+  //   try {
+  //     const formData = new FormData();
+  //     formData.append('file', {
+  //       uri: imageUri,
+  //       type: 'image/jpeg',
+  //       name: 'image.jpg',
+  //     });
+  //     formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
 
-  const upload = async (imageUri )=> {
+  //     const response = await axios.post(CLOUDINARY_URL, formData, {
+  //       headers: {'content-type': 'multipart/form-data'},
+  //     });
+  //     console.log(response.data.public_id);
+  //     return response.data.public_id;
+  //   } catch (error) {
+  //     console.log(error);
+  //   }
+  // };
+ 
+
+  const[to,setTo]=useState("")
+  const[text1,setText1]=useState("")
+  const handleTranslate=()=>
+  {
     try {
-      const formData = new FormData();
-      formData.append('file', {
-        uri: imageUri,
-        type: 'image/jpeg',
-        name: 'image.jpg',
-      });
-      formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
-
-      const response = await axios.post(CLOUDINARY_URL, formData, {
-        headers: {'content-type': 'multipart/form-data'},
-      });
-      console.log(response.data.secure_url);
-      return response;
-    } catch (error) {
-      console.log(error);
-    }
-  };
-  const handleToggleSave = id => {
-    const updatedWords = words.map(word => {
-      if (word.result.id === id) {
-        return {...word, saved: !word.saved};
-      }
-
-      return word;
-    });
-
-    saveWord(
-      updatedWords[0].result.id,
-      updatedWords[0].saved
-     
-    );
-    setWords(updatedWords);
-  };
-  const saveWord = async (idWord, saved) => {
-    const url= await upload(image)
-    try {
-      const response = await axios.post(
-        `${baseUrl}save-my-word`,
-        {
-          idWord,
-          saved,
-          url
+      const options = {
+        method: 'POST',
+        url: 'https://google-translate1.p.rapidapi.com/language/translate/v2',
+        headers: {
+          'content-type': 'application/x-www-form-urlencoded',
+          'Accept-Encoding': 'application/gzip',
+          'X-RapidAPI-Key': '860d6b05ccmshb19d2dfce6cc25bp1593a9jsna4328dea7410',
+          'X-RapidAPI-Host': 'google-translate1.p.rapidapi.com'
         },
+        data: {
+          q: text1,
+          target: "vi",
+          source: "en",
+        },
+      };
+
+      axios
+        .request(options)
+        .then(function (response) {
+          console.log(response.data.data.translations[0].translatedText);
+          setTo(response.data.data.translations[0].translatedText);
+         
+        })
+        .catch(function (error) {
+          console.error(error);
+        });
+    } catch (error) {
+      console.error(error);
+    }
+  }
+  const loadData=  async()=>
+  {
+    try {
+      const response = await axios.get(
+        `${baseUrl}get-list-history-search`,
+        
+        
         {
           headers: {
             'Content-Type': ' application/json',
           },
         },
       );
+    
+     return response.data
     } catch (error) {
-      console.log(error);
+      if (error.response.status === 403)
+      {
+        navigation.navigate("Login")
+      }
     }
+  }
+  const searchItem = async (searchTerm) => {
+    let saved = true; // Biến cục bộ để lưu trạng thái saved
+    const datasaved = await loadData();
+    console.log(datasaved)
+    for (let i = 0; i < data.length; i++) {
+      if (data[i].word === searchTerm.toLowerCase()) {
+        for (let j = 0; j < datasaved.length; j++) {
+          if (data[i].id === datasaved[j]) { // Sửa: so sánh với datasaved[j].id
+            saved = false;
+            return { data: data[i], saved }; // Sửa: Trả về saved như một thuộc tính của object
+          }
+        }
+        saved = true;
+        return { data: data[i], saved }; // Sửa: Trả về saved như một thuộc tính của object
+      }
+    }
+  
+    return {data: null, saved}; // Trả về null nếu không tìm thấy phần tử
   };
+  const dispatchRedux = useDispatch();
+  const handleSearch = async (searchTerm) => {
+    const { data, saved } = await searchItem(searchTerm); // Sửa: Destructure giá trị trả về
+    dispatchRedux(setText(searchTerm, data, saved)); // Truyền giá trị saved vào action dispatch
+    navigation.navigate("Test");
+  };
+  
+  
   const [isLoading, setIsLoading] = useState(false);
   const [image, setImage] = useState(null);
   const requestCameraPermission = async () => {
@@ -220,18 +229,19 @@ const Camera = ({navigation}) => {
     });
 
     try {
-      const response = await axios.post(
-        `${baseUrl}detect`,
-        formData,
-        {
-          headers: {
-            'Content-Type': 'multipart/form-data',
-          },
+      const response = await axios.post(`${baseUrl}detect`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
         },
-      );
-      console.log(response.data);
-      setWords(response.data);
+      });
+     
+      const tu = response.data.caption;
+      setText1(tu)
+      const words = tu.split(' ');
+      setWords(words);
+      setHasRenderedWords(true)
       setIsLoading(false);
+      setTo("")
     } catch (error) {
       console.log(error);
       setIsLoading(false);
@@ -245,25 +255,17 @@ const Camera = ({navigation}) => {
     }).then(image => {
       setIsLoading(true);
       setImage(image.path);
-       hehe(image);
+      hehe(image);
     });
   };
   const renderWords = () => {
     return words.map(word => {
       return (
-        <Word
-          key={word.result.id}
-          text={word.result.text}
-          mean={word.result.mean}
-          saved={word.saved}
-          spell={word.result.spell}
-          post={word.post}
-          onPress={() => handleToggleSave(word.result.id)}
-        />
+        <Word mean={word} onPress={() =>handleSearch(word)} />
       );
     });
   };
-
+ 
   return (
     <View style={styles.body}>
       <View style={styles.view}>
@@ -304,14 +306,60 @@ const Camera = ({navigation}) => {
           </View>
         </View>
         {isLoading ? (
-          <LoadingScreen />
-        ) : (
-          <ScrollView>
-            <View style={{marginTop: 20}}>
-              <View style={{alignItems: 'center'}}>{renderWords()}</View>
-            </View>
-          </ScrollView>
-        )}
+  <LoadingScreen />
+) : (
+  <>
+    {hasRenderedWords ? (
+      <ScrollView>
+      <View
+        style={{ marginTop: 20, flexDirection: 'row' ,marginRight:5}}
+      >
+        <Text
+          style={{
+            color: '#22a5f1',
+            fontSize: 20,
+            fontWeight: '500',
+            marginRight: 5,
+          }}
+        >
+          {'-->'}
+        </Text>
+        <View style={{marginEnd:5}}>
+        <View style={{ flexDirection: 'row', flexWrap: 'wrap',  }}>
+          {renderWords()}
+        </View>
+        </View>
+        
+      </View>
+      {renderWords().length > 0 && (
+      <TouchableOpacity style={{ marginRight: 6 }} onPress={() => handleTranslate()}>
+        <Text
+          style={{
+            color: '#d11213',
+            fontSize: 20,
+            fontWeight: '500',
+            textDecorationLine: 'underline',
+          }}
+        >
+          Dịch nghĩa
+        </Text>
+      </TouchableOpacity>
+      
+    )}
+   <Text  style={{
+            color: '#000',
+            fontSize: 20,
+            fontWeight: '500',
+            marginRight: 5,
+            marginStart:25
+          }}>{to}</Text>
+    </ScrollView>
+    ) : (
+      <View></View>
+    )}
+  </>
+)}
+
       </View>
     </View>
   );

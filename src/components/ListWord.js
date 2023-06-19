@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useState,useEffect} from 'react';
 import {
   View,
   Text,
@@ -9,22 +9,36 @@ import {
   Image,
 } from 'react-native';
 import Icon from 'react-native-ionicons';
-
+import axios from 'axios';
+import { baseUrl,CLOUDINARY_URL,CLOUDINARY_UPLOAD_PRESET } from '../API/Url';
 const ListWord = ({navigation}) => {
   const [words, setWords] = useState([
-    {id: 1, name: 'apple', saved: true},
-    {id: 2, name: 'banana', saved: false},
-    {id: 3, name: 'orange', saved: false},
-    {id: 4, name: 'grape', saved: false},
-    {id: 5, name: 'grape', saved: false},
-    {id: 6, name: 'grape', saved: false},
-    {id: 7, name: 'grape', saved: false},
-    {id: 8, name: 'grape', saved: false},
-    {id: 9, name: 'grape', saved: false},
-    {id: 10, name: 'grape', saved: false},
-    {id: 11, name: 'grape', saved: false},
+    
   ]);
-
+  const loadData = async () => {
+   
+    try {
+      const response = await axios.get(
+        `${baseUrl}list-word-detect`,
+        
+        {
+          headers: {
+            'Content-Type': ' application/json',
+          },
+        },
+      );
+     
+      setWords(response.data)
+    } catch (error) {
+      if (error.response.status === 403)
+      {
+        navigation.navigate("Login")
+      }
+    }
+  };
+  useEffect(() => {
+    loadData()
+  }, []);
   const handleToggleSave = id => {
     const updatedWords = words.map(word => {
       if (word.id === id) {
@@ -37,11 +51,15 @@ const ListWord = ({navigation}) => {
 
   const renderWords = () => {
     return words.map(word => {
-      const {id, name, saved} = word;
+      const {id, text, mean,spell,type,url,saved} = word;
       return (
         <Word
           key={id}
-          name={name}
+          text={text}
+          mean={mean}
+          spell={spell}
+          type={type}
+          url={url}
           saved={saved}
           onPress={() => handleToggleSave(id)}
         />
@@ -64,7 +82,7 @@ const ListWord = ({navigation}) => {
           style={{ marginLeft:10, color: '#fff'}}
           onPress={() => navigation.goBack()}
         />
-        <TouchableOpacity onPress={()=> navigation.navigate('FlashCard')}>
+        <TouchableOpacity onPress={()=> navigation.navigate('MyGame')}>
             <Text style={{color: '#fff', fontSize: 20,textDecorationLine:'underline', marginRight:10}} >Ôn tập</Text>
         </TouchableOpacity>
             </View>
@@ -77,7 +95,7 @@ const ListWord = ({navigation}) => {
   );
 };
 
-const Word = ({name, saved, onPress}) => {
+const Word = ({text,mean,spell,type,url, saved, onPress}) => {
   return (
     <View style={styles.word}>
       <View style={{marginLeft: 15}}>
@@ -89,7 +107,7 @@ const Word = ({name, saved, onPress}) => {
           }}>
          
           <Text style={{color: '#22a5f1', fontSize: 17, fontWeight: 600}}>
-            Banana
+            {text}
           </Text>
           <Text
             style={{
@@ -98,7 +116,7 @@ const Word = ({name, saved, onPress}) => {
               fontWeight: 600,
               marginLeft: 10,
             }}>
-            /bəˈnanə/
+           {spell}
           </Text>
           <Icon
             name="volume-high"
@@ -111,11 +129,11 @@ const Word = ({name, saved, onPress}) => {
         <View style={{flexDirection: 'row', alignItems: 'center'}}>
          
           <Text style={{color: '#000', fontSize: 17, fontWeight: 600}}>
-            Quả chuối
+            {mean}
           </Text>
         </View>
       </View>
-      <Image style={styles.logo} source={require('../img/vn.png')}></Image>
+      <Image style={styles.logo} source={{uri:`https://res.cloudinary.com/dpnhk5kup/image/upload/${url }`}}></Image>
       {saved ? (
         <Icon
           name="checkmark"
