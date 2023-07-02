@@ -49,25 +49,26 @@ const Translate = ({navigation}) => {
     try {
       const options = {
         method: 'POST',
-        url: 'https://translo.p.rapidapi.com/api/v3/translate',
+        url: 'https://google-translate1.p.rapidapi.com/language/translate/v2',
         headers: {
           'content-type': 'application/x-www-form-urlencoded',
+          'Accept-Encoding': 'application/gzip',
           'X-RapidAPI-Key':
-            'dc294d06f7msh92646223d8f046cp1db561jsnf09ed1abc927',
-          'X-RapidAPI-Host': 'translo.p.rapidapi.com',
+            '860d6b05ccmshb19d2dfce6cc25bp1593a9jsna4328dea7410',
+          'X-RapidAPI-Host': 'google-translate1.p.rapidapi.com',
         },
         data: {
-          text: from,
-          from: vn,
-          to: en,
+          q: from,
+          target: en,
+          source: vn,
         },
       };
 
       axios
         .request(options)
         .then(function (response) {
-          console.log(response.data);
-          setTo(response.data.translated_text);
+          console.log(response.data.data.translations[0].translatedText);
+          setTo(response.data.data.translations[0].translatedText);
         })
         .catch(function (error) {
           console.error(error);
@@ -105,7 +106,7 @@ const Translate = ({navigation}) => {
               color="blue"
               onPress={swap}
             />
-            <Text style={{marginLeft: 30, fontSize: 20}} on>
+            <Text style={{marginLeft: 30, fontSize: 20, color: '#000'}} on>
               {text1}
             </Text>
           </View>
@@ -121,10 +122,10 @@ const Translate = ({navigation}) => {
               <View style={styles.icon}>
                 <Icon
                   name="volume-high"
-                  style={{marginRight: 10, color: '#9CCECA'}}
+                  style={{marginRight: 10, color: '#22a5f1'}}
                   onPress={speak}
                 />
-                <Icon name="copy" style={{color: '#9CCECA'}} />
+                <Icon name="copy" style={{color: '#22a5f1'}} />
               </View>
               <Text style={[{marginTop: 10}, styles.font]}>To:</Text>
               <TextInput style={styles.area} multiline={true}>
@@ -133,10 +134,10 @@ const Translate = ({navigation}) => {
               <View style={styles.icon}>
                 <Icon
                   name="volume-high"
-                  style={{marginRight: 10, color: '#9CCECA'}}
+                  style={{marginRight: 10, color: '#22a5f1'}}
                   onPress={speak1}
                 />
-                <Icon name="copy" style={{color: '#9CCECA'}} />
+                <Icon name="copy" style={{color: '#22a5f1'}} />
               </View>
               <View style={{alignItems: 'center'}}>
                 <TouchableOpacity
@@ -190,9 +191,11 @@ const styles = StyleSheet.create({
     fontSize: 20,
     marginTop: 10,
     color: '#000',
+    borderRadius: 10,
   },
   font: {
     fontSize: 20,
+    color: '#000',
   },
   icon: {
     flexDirection: 'row',
